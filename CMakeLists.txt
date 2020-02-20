@@ -1,17 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pcl_converter)
-add_compile_options(-std=c++11)
-
-find_package(catkin REQUIRED
+find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   roscpp
   sensor_msgs
-  message_generation
 )
-
-
-## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
 #   Message1.msg
@@ -32,25 +26,23 @@ find_package(catkin REQUIRED
 #   Action2.action
 # )
 
+## Generate added messages and services with any dependencies listed here
+generate_messages(DEPENDENCIES sensor_msgs)
 
-generate_messages(DEPENDENCIES sensor_msgs )
-
-
-## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
 #   cfg/DynReconf1.cfg
 #   cfg/DynReconf2.cfg
 # )
+catkin_package()
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES pcl_converter
-  CATKIN_DEPENDS pcl_conversions pcl_ros roscpp sensor_msgs
-  DEPENDS system_lib
-)
+###########
+## Build ##
+###########
 
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
 include_directories(include ${catkin_INCLUDE_DIRS})
-add_executable(${PROJECT_NAME} src/converter.cpp)
-#add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+add_executable(${PROJECT_NAME}_node src/converter.cpp)
+##add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 
