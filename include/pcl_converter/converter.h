@@ -11,19 +11,20 @@
 //filter
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
-//#include <visualization_msgs/Marker.h>
-
+#include <visualization_msgs/Marker.h>
+#include <velodyne_pointcloud/point_types.h>
+#include <cmath>
 #include <vector>
 using namespace std;
 class Converter{
 private:
     ros::NodeHandle nh_;
-    ros::Publisher pub_, marker_pub_;
+    ros::Publisher pub_, marker_pub_1, marker_pub_2;
     ros::Subscriber sub_;
     
    
 public: 
     void initSetup();
-    void convertCallback(const boost::shared_ptr<const sensor_msgs::PointCloud2>& input);
+    //void convertCallback(const boost::shared_ptr<const sensor_msgs::PointCloud2>& input);
     void points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg);
 };
