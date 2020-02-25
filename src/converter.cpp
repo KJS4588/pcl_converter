@@ -1,29 +1,5 @@
 #include "pcl_converter/converter.h"
 
-/*void Converter::convertCallback(const boost::shared_ptr<const sensor_msgs::PointCloud2>& input){
-    pcl::PCLPointCloud2 pcl_pc2;
-    //pcl_conversions::toPCL(*input,pcl_pc2);
-    pcl::PointXYZI point;
-    point.x = point.y = point.z = point.intensity = 0;
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<velodyne_pointcloud::PointXYZIR>::Ptr cloud_XYZIR (new pcl::PointCloud<velodyne_pointcloud::PointXYZIR>);
-    pcl::fromROSMsg(*input, *cloud_XYZIR);
-    //fromPCLPointCloud2(pcl_pc2, *cloud_XYZIR);
-    cloud_filtered->header.frame_id = "velodyne";
-    for (size_t i = 0; i < cloud_XYZIR -> points.size(); i++){
-        if (cloud_XYZIR -> points[i].ring >= 0 && cloud_XYZIR -> points[i].ring <= 5){
-            point.x = cloud_XYZIR -> points[i].x;
-            point.y = cloud_XYZIR -> points[i].y;
-            point.z = cloud_XYZIR -> points[i].z;
-            point.intensity = cloud_XYZIR -> points[i].intensity;
-            cloud_filtered -> points.push_back(point);
-        }
-    }
-    float x = cloud_XYZIR -> points[0].ring;
-    pub_.publish(cloud_filtered);
-    cout << x << endl;
-    
-}*/
 void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
     
     pcl::VoxelGrid<pcl::PointXYZI> vg;
@@ -45,22 +21,6 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
     
  //--------------------------------------------------------------------------------------------------//
     pcl::fromROSMsg(*msg, *cloud_XYZIR);
-    /*pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_2 (new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_3 (new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_4 (new pcl::PointCloud<pcl::PointXYZI>);
-
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_F2 (new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_F3 (new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_F4 (new pcl::PointCloud<pcl::PointXYZI>);
-
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerLeft (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerRight (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerLeft2 (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerRight2 (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerLeft3 (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerRight3 (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerLeft4 (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr containerRight4 (new pcl::PointCloud<pcl::PointXYZ>);*/
     vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> vect_cloud;
     //vect_cloud.resize(16);
     vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> vect_cloud_pre;
@@ -76,9 +36,6 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
         vect_laneright.push_back (pcl::PointCloud<pcl::PointXYZ>::Ptr (new pcl::PointCloud<pcl::PointXYZ>()));
 
     }
-    /*cloud_filtered->header.frame_id = "velodyne";
-    cloud_filtered2->header.frame_id = "velodyne";
-    cloud_filtered3->header.frame_id = "velodyne";*/
 
     for (size_t i = 0; i < cloud_XYZIR->points.size(); i++){
         cout << i << endl;
@@ -164,6 +121,17 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
         pass.setFilterLimits(0.7, 30.0);
         pass.filter (*vect_cloud[8]);
         }
+        if (cloud_XYZIR->points[i].ring == 9 && cloud_XYZIR->points[i].intensity >= 25 && cloud_XYZIR->points[i].intensity <= 70){
+        point.x = cloud_XYZIR->points[i].x;
+        point.y = cloud_XYZIR->points[i].y;
+        point.z = cloud_XYZIR->points[i].z;
+        point.intensity = cloud_XYZIR->points[i].intensity;
+        vect_cloud_pre[9]->points.push_back(point);
+        pass.setInputCloud(vect_cloud_pre[8]);
+        pass.setFilterFieldName("x");  
+        pass.setFilterLimits(0.7, 30.0);
+        pass.filter (*vect_cloud[9]);
+        }
         else   
             continue;
     }
@@ -228,6 +196,42 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
         else if (vect_cloud[6]->points[i].y <= -1 && vect_cloud[6]->points[i].y >= -3){
             pcl::PointXYZ point1(vect_cloud[6]->points[i].x, vect_cloud[6]->points[i].y, vect_cloud[6]->points[i].z);
             vect_laneright[6]->points.push_back(point1);    
+        }
+        else
+            continue;
+    }
+    for (size_t i = 0; i < vect_cloud[7]->points.size(); i++){
+        if (vect_cloud[7]->points[i].y >= 1 && vect_cloud[7]->points[i].y <= 5){
+            pcl::PointXYZ point1(vect_cloud[7]->points[i].x, vect_cloud[7]->points[i].y, vect_cloud[7]->points[i].z);
+            vect_laneleft[7]->points.push_back(point1);    
+        }
+        else if (vect_cloud[7]->points[i].y <= -1 && vect_cloud[7]->points[i].y >= -3){
+            pcl::PointXYZ point1(vect_cloud[7]->points[i].x, vect_cloud[7]->points[i].y, vect_cloud[7]->points[i].z);
+            vect_laneright[7]->points.push_back(point1);    
+        }
+        else
+            continue;
+    }
+    for (size_t i = 0; i < vect_cloud[8]->points.size(); i++){
+        if (vect_cloud[8]->points[i].y >= 1 && vect_cloud[8]->points[i].y <= 5){
+            pcl::PointXYZ point1(vect_cloud[8]->points[i].x, vect_cloud[8]->points[i].y, vect_cloud[8]->points[i].z);
+            vect_laneleft[8]->points.push_back(point1);    
+        }
+        else if (vect_cloud[8]->points[i].y <= -1 && vect_cloud[8]->points[i].y >= -3){
+            pcl::PointXYZ point1(vect_cloud[8]->points[i].x, vect_cloud[8]->points[i].y, vect_cloud[8]->points[i].z);
+            vect_laneright[8]->points.push_back(point1);    
+        }
+        else
+            continue;
+    }
+    for (size_t i = 0; i < vect_cloud[9]->points.size(); i++){
+        if (vect_cloud[9]->points[i].y >= 1 && vect_cloud[9]->points[i].y <= 5){
+            pcl::PointXYZ point1(vect_cloud[9]->points[i].x, vect_cloud[9]->points[i].y, vect_cloud[9]->points[i].z);
+            vect_laneleft[6]->points.push_back(point1);    
+        }
+        else if (vect_cloud[9]->points[i].y <= -1 && vect_cloud[9]->points[i].y >= -3){
+            pcl::PointXYZ point1(vect_cloud[9]->points[i].x, vect_cloud[9]->points[i].y, vect_cloud[9]->points[i].z);
+            vect_laneright[9]->points.push_back(point1);    
         }
         else
             continue;
@@ -319,7 +323,7 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
         else 
             continue;
     }
-    /*for (size_t i = 0; i < vect_laneleft[7]->points.size(); i++){
+    for (size_t i = 0; i < vect_laneleft[7]->points.size(); i++){
         if (vect_laneleft[7]->points.size() != 0){
             left_point[7].x += vect_laneleft[7]->points[i].x;
             left_point[7].y += vect_laneleft[7]->points[i].y;
@@ -337,7 +341,45 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
         }
         else 
             continue;
-    }*/
+    }
+    for (size_t i = 0; i < vect_laneleft[8]->points.size(); i++){
+        if (vect_laneleft[8]->points.size() != 0){
+            left_point[8].x += vect_laneleft[8]->points[i].x;
+            left_point[8].y += vect_laneleft[8]->points[i].y;
+            left_point[8].z += vect_laneleft[8]->points[i].z;
+        }
+        else
+            continue;
+    }
+
+    for (size_t i = 0; i < vect_laneright[8]->points.size(); i++){
+        if (vect_laneright[8]->points.size() != 0){
+            right_point[8].x += vect_laneright[8]->points[i].x;
+            right_point[8].y += vect_laneright[8]->points[i].y;
+            right_point[8].z += vect_laneright[8]->points[i].z;
+        }
+        else 
+            continue;
+    }
+    for (size_t i = 0; i < vect_laneright[9]->points.size(); i++){
+        if (vect_laneright[9]->points.size() != 0){
+            right_point[9].x += vect_laneright[9]->points[i].x;
+            right_point[9].y += vect_laneright[9]->points[i].y;
+            right_point[9].z += vect_laneright[9]->points[i].z;
+        }
+        else 
+            continue;
+    }
+    for (size_t i = 0; i < vect_laneleft[9]->points.size(); i++){
+        if (vect_laneleft[9]->points.size() != 0){
+            left_point[9].x += vect_laneleft[9]->points[i].x;
+            left_point[9].y += vect_laneleft[9]->points[i].y;
+            left_point[9].z += vect_laneleft[9]->points[i].z;
+        }
+        else
+            continue;
+    }
+
     for (size_t i =0; i < left_point.size(); i++){
         if (vect_laneleft[i]->points.size()!= 0){
             p_l.x = left_point[i].x/vect_laneleft[i]->points.size();
@@ -363,42 +405,7 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
     left_point.clear();
     right_point.clear();
   
-  /*
-    for (size_t i = 0; i < containerRight2->points.size(); i++){
-        if (containerRight2->points.size() != 0){
-            int index = containerRight2->points.size()/2;
-            p_r.x = containerRight2->points[index].x;
-            p_r.y = containerRight2->points[index].y;
-            p_r.z = 0;
-            mark_points_right.points.push_back(p_r);
-            marker_pub_2.publish(mark_points_right);
-            cout << "ring 2" << endl;}
-
-        else 
-            continue;
-    }
-    for (size_t i = 0; i < containerLeft3->points.size(); i++){
-        if (containerLeft3->points.size() != 0){cout << "111111";
-            p_l.x = containerLeft3->points[index].x;
-            p_l.y = containerLeft3->points[index].y;
-            p_l.z = 0;
-            mark_points_left.points.push_back(p_l);
-            marker_pub_1.publish(mark_points_left);}
-        else
-            continue;
-    }
-    for (size_t i = 0; i < containerRight3->points.size(); i++){
-        if (containerRight3->points.size() != 0){
-            int index = containerRight3->points.size()/2;
-            p_r.x = containerRight3->points[index].x;
-            p_r.y = containerRight3->points[index].y;
-            p_r.z = 0;
-            mark_points_left.points.push_back(p_r);
-            marker_pub_2.publish(mark_points_right);
-            cout << "ring 3" << endl;}
-        else 
-            continue;
-    }
+  
  
     /*pass.setInputCloud(cloud_filtered);
     pass.setFilterFieldName("y");  

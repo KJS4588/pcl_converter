@@ -25,6 +25,6 @@ private:
    
 public: 
     void initSetup();
-    //void convertCallback(const boost::shared_ptr<const sensor_msgs::PointCloud2>& input);
+    void convertCallback(const boost::shared_ptr<const sensor_msgs::PointCloud2>& input);
     void points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg);
 };
