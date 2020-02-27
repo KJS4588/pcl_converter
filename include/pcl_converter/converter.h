@@ -22,9 +22,9 @@ private:
     ros::Publisher pub_, marker_pub_1, marker_pub_2;
     ros::Subscriber sub_;
     
-   
 public: 
     void initSetup();
     void convertCallback(const boost::shared_ptr<const sensor_msgs::PointCloud2>& input);
     void points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg);
+    void visualize(vector<pcl::PointXYZ> left_point, vector<pcl::PointXYZ> right_point);
 };

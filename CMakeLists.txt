@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(pcl_converter)
+add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   roscpp
   sensor_msgs
 )
+
 # add_message_files(
 #   FILES
 #   Message1.msg
