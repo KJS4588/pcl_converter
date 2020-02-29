@@ -15,16 +15,18 @@
 #include <velodyne_pointcloud/point_types.h>
 #include <cmath>
 #include <vector>
+#include <math.h>
 using namespace std;
 class Converter{
 private:
     ros::NodeHandle nh_;
-    ros::Publisher pub_, marker_pub_1, marker_pub_2;
+    ros::Publisher pub_, marker_pub_1, marker_pub_2, waypoint_pub;
     ros::Subscriber sub_;
     
 public: 
     void initSetup();
     void convertCallback(const boost::shared_ptr<const sensor_msgs::PointCloud2>& input);
     void points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg);
-    void visualize(vector<pcl::PointXYZ> left_point, vector<pcl::PointXYZ> right_point);
+    void visualize(vector<pcl::PointXYZ> left_point, vector<pcl::PointXYZ> right_point, vector<geometry_msgs::Point> waypoint);
+    //void cubicFormula( double a , double b, double c, double d, double realRoot[], double complRoot [], int& nRealRootCount);
 };
