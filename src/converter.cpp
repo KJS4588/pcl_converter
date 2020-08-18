@@ -1,7 +1,8 @@
 #include "pcl_converter/converter.h"
 #include "pcl_converter/polyfit.h"
 #include "polyfit.c"
-
+#include "math.h"
+#define _USE_MATH_DEFINES
 //int ld = 1.5; 
 
 const unsigned int ORDER = 3;
@@ -34,6 +35,12 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
     pass.setFilterLimits(0.7, 30.0);
     pass.filter (*cloud_filterd);
     */
+	for (size_t i=0;i<cloud_XYZIR->points.size();i++){
+		cloud_XYZIR->points[i].x = cloud_XYZIR->points[i].x*cos(12*M_PI/180) + cloud_XYZIR->points[i].z*sin(12*M_PI/180); 
+		cloud_XYZIR->points[i].y = cloud_XYZIR->points[i].y;
+		cloud_XYZIR->points[i].z = -cloud_XYZIR->points[i].z*sin(12*M_PI/180) + cloud_XYZIR->points[i].z*sin(12*M_PI/180); 
+	}	
+
     for (auto point : *cloud_XYZIR){
         if (point.intensity >= 25 && point.intensity <= 70){
             vect_cloud[point.ring]->points.push_back(point);
@@ -44,10 +51,10 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
     for (size_t i = 0; i < vect_cloud.size(); i++){         
         for (auto point : *vect_cloud[i]){
             pcl::PointXYZ point1(point.x, point.y, point.z);
-            if (point.y >= 1 && point.y <= 5 && point.x >= 0.5 && point.x <= 30){
+            if (point.y >= 0.8 && point.y <= 3 && point.x >= 0.5 && point.x <= 30){
                 vect_laneleft[point.ring]->points.push_back(point1);    
             }
-            else if (point.y >= -3 && point.y <= -1 && point.x >= 0.5 && point.x <= 30) {
+            else if (point.y >= -3 && point.y <= -0.8 && point.x >= 0.5 && point.x <= 30) {
                 vect_laneright[point.ring]->points.push_back(point1);
             }else
                 continue;
@@ -169,7 +176,6 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
     //cubicFormula(left_coef[3] , left_coef[2], left_coef[1], left_coef[0], double realRoot[], double complRoot [], int& nRealRootCount);
     
     vector<geometry_msgs::Point> waypoint;
-    float ld = 1.5;
     for (int i = 0; i < 10; i++){
         
         float waypoint_y_l = left_coef[3]*ld*ld*ld + left_coef[2]*ld*ld + left_coef[1] * ld + left_coef[0];
@@ -183,11 +189,14 @@ void Converter::points_Callback(const sensor_msgs::PointCloud2ConstPtr &msg){
         p.z = 0;
         waypoint.push_back(p);
     }
-    
+    ld = 1.5;
     vect_laneleft.clear();
     vect_laneright.clear();
     visualize(left_point, right_point, waypoint);
     
+    cout << calcSteeringAngle(waypoint) << endl;
+    calcSteeringAngle(waypoint);
+    process();
     /*pass.setInputCloud(cloud_filtered);
     pass.setFilterFieldName("y");  
     pass.setFilterLimits(-5.0, 5.0);
@@ -254,59 +263,23 @@ void Converter::visualize(vector<pcl::PointXYZ> left_point, vector<pcl::PointXYZ
     marker_pub_2.publish(mark_points_right);
     waypoint_pub.publish(waypoint_viz);
 }
-/*void Converter::cubicFormula( double a , double b, double c, 
-                              double d, double realRoot[], 
-                              double complRoot [], int& nRealRootCount) 
-{ 
-    if (a == 0) return;
-    if (d == 0) return; 
-    b /= a; 
-    c /= a; 
-    d /= a; 
-    double disc , q, r, dum1, s, t , term1, r13;
-    q = (3.0*c - (b*b))/9.0; 
-    r = -(27.0*d ) + b*(9.0* c - 2.0*(b *b)); 
-    r /= 54.0; disc = q *q*q + r*r; complRoot[0] = 0; 
-    //The first root is always real. 
-    term1 = (b /3.0); 
-    if (disc > 0) { // one root real, two are complex 
-        s = r + Sqrt( disc); 
-        s = ((s < 0) ? -Pow(- s, (1.0/3.0)) : Pow (s, (1.0/3.0))); 
-        t = r - Sqrt( disc); t = ((t < 0) ? -Pow(- t, (1.0/3.0)) : Pow (t, (1.0/3.0))); 
-        realRoot[0] = -term1 + s + t; term1 += (s + t)/2.0; 
-        realRoot[2] = realRoot [1] = -term1; 
-        term1 = BrSqrt (3.0)*(-t + s)/2; 
-        complRoot[1] = term1 ; 
-        complRoot[2] = -term1 ; 
-        nRealRootCount = 1; 
-        return; 
-    } else if (disc == 0) { 
-        // All roots real, at least two are equal. 
-        complRoot[2] = complRoot [1] = 0; 
-        r13 = ((r < 0) ? -pow(- r,(1.0/3.0)) : pow (r,(1.0/3.0))); 
-        realRoot[0] = -term1 + 2.0*r13; 
-        realRoot[2] = realRoot [1] = -(r13 + term1); 
-        nRealRootCount = 2; 
-        return; 
-    } else { 
-        // Only option left is that all roots are real and unequal (to get here, q < 0) 
-        q = -q ; 
-        dum1 = q *q*q; 
-        dum1 = acos (r/sqrt( dum1)); 
-        r13 = 2.0*sqrt (q); 
-        realRoot[0] = -term1 + r13*cos( dum1/3.0); 
-        realRoot[1] = -term1 + r13*cos(( dum1 + 2.0*PI )/3.0); 
-        realRoot[2] = -term1 + r13*cos(( dum1 + 4.0*PI )/3.0); 
-        nRealRootCount = 3; 
-    } 
-    return; 
-}*/
 
 void Converter::initSetup(){
+    steer_angle_ = 0.0;
     sub_ = nh_.subscribe("velodyne_points",100,&Converter::points_Callback,this);
     marker_pub_1 = nh_.advertise<visualization_msgs::Marker>("visualization_marker1", 10);
     marker_pub_2 = nh_.advertise<visualization_msgs::Marker>("visualization_marker2", 10);
     waypoint_pub = nh_.advertise<visualization_msgs::Marker>("waypoint", 10);
+    ackermann_pub_ = nh_.advertise<ackermann_msgs::AckermannDriveStamped>("ctrl_cmd", 10);
+}
+void Converter::process(){
+    ackerData_.drive.steering_angle = int((-steer_angle_/3.141592) * 104);
+    ackerData_.drive.speed = 3;
+    ackermann_pub_.publish(ackerData_);
+}
+
+double Converter::calcSteeringAngle(vector<geometry_msgs::Point> waypoint){
+    steer_angle_ = atan(waypoint[1].y / waypoint[1].x);
 }
 
 int main(int argc, char **argv){
